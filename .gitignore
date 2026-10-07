@@ -7,7 +7,7 @@ venv/
 .env
 
 #
- Terraform (le fichier d'état peut contenir des secrets)
+ Terraform
 .terraform/
 *.tfstate
 *.tfstate.*
