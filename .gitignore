@@ -1,0 +1,19 @@
+#
+ Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+#
+ Terraform (le fichier d'état peut contenir des secrets)
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+crash.log
+
+#
+ Divers
+.DS_Store
