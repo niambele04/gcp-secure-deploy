@@ -14,7 +14,7 @@ env:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -32,7 +32,7 @@ jobs:
         run: docker build -t $IMAGE:${{ github.sha }} .
 
       - name: Scan Trivy (bloque si faille grave)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}:${{ github.sha }}
           severity: CRITICAL,HIGH
