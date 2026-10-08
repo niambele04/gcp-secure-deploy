@@ -1,0 +1,49 @@
+name: build-scan-deploy
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["README.md", "terraform/**"]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: europe-west9
+  IMAGE: europe-west9-docker.pkg.dev/${{ secrets.GCP_PROJECT }}/apps/api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.DEPLOY_SA }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Autoriser Docker
+        run: gcloud auth configure-docker europe-west9-docker.pkg.dev --quiet
+
+      - name: Build
+        run: docker build -t $IMAGE:${{ github.sha }} .
+
+      - name: Scan Trivy (bloque si faille grave)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - name: Push
+        run: docker push $IMAGE:${{ github.sha }}
+
+      - uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: api
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE }}:${{ github.sha }}
